@@ -16,6 +16,7 @@
         <source-file src="src/ios/LTHKeychainUtils.m" />
         <header-file src="src/ios/LTHPasscodeViewController.h" />
         <source-file src="src/ios/LTHPasscodeViewController.m" />
+        <resource-file src="src/ios/LTHPasscodeViewController.bundle" />
     </platform>
 
 </plugin>
