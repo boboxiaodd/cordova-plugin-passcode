@@ -379,6 +379,9 @@
  @brief The passcode view will be shown by default when entering the app from background. `disablePasscodeWhenApplicationEntersBackground` can disable that behavior and this method enables it again, by adding back the observers for UIApplicationDidEnterBackgroundNotification and UIApplicationWillEnterForegroundNotification
  */
 - (void)enablePasscodeWhenApplicationEntersBackground;
+
+- (BOOL)passCodeExists;
+
 /**
  @brief  Returns a Boolean value that indicates whether a passcode exists (@c YES) or not (@c NO).
  @return @c YES if a passcode is enabled. This also means it is enabled, unless custom logic was added to the library.
@@ -411,7 +414,7 @@
 /**
  @brief Removes the passcode from the keychain.
  */
-+ (void)deletePasscode;
+- (void)deletePasscode;
 /**
  @brief Removes the passcode from the keychain and closes the passcode view controller.
  */

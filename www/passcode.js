@@ -1,13 +1,22 @@
 const exec = require('cordova/exec');
-const CDVAMap = {
-    location:function (success){
-        exec(success,null,'CDVAMap','location',[]);
+const CDVPasscode = {
+    init_passcode:function (){
+        exec(null,null,'CDVPasscode','init_passcode',[]);
     },
-    showMap:function (success,option){
-        exec(success,null,'CDVAMap','showMap',[option]);
+    show_passcode:function (success){
+        exec(success,null,'CDVPasscode','show_passcode',[]);
     },
-    openMap:function (success,option){
-        exec(success,null,'CDVAMap','openMap',[option]);
+    change_passcode:function (){
+        exec(null,null,'CDVPasscode','change_passcode',[]);
+    },
+    del_passcode:function (){
+        exec(null,null,'CDVPasscode','del_passcode',[]);
+    },
+    close:function (){
+        exec(null,null,'CDVPasscode','close',[]);
+    },
+    has_passcode:function (success){
+        exec(success,null,'CDVPasscode','has_passcode',[]);
     }
 };
-module.exports = CDVAMap;
+module.exports = CDVPasscode;

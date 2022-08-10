@@ -1,4 +1,4 @@
 #import <Cordova/CDVPlugin.h>
-@interface CDVAMap : CDVPlugin {}
+@interface CDVPasscode : CDVPlugin {}
 
 @end
