@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-passcode" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0">
+    <name>CDVPasscode</name>
+    <js-module name="CDVPasscode" src="www/passcode.js">
+        <clobbers target="CDVPasscode" />
+    </js-module>
+    <platform name="ios">
+        <config-file parent="/*" target="config.xml">
+            <feature name="CDVPasscode">
+                <param name="ios-package" value="CDVPasscode" />
+            </feature>
+        </config-file>
+        <header-file src="src/ios/CDVPasscode.h" />
+        <source-file src="src/ios/CDVPasscode.m" />
+    </platform>
+
+</plugin>
