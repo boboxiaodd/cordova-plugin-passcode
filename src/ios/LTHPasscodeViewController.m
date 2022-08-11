@@ -1145,68 +1145,8 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 
 - (BOOL)_validatePasscode:(NSString *)typedString {
-      [self.delegate savePasscode:typedString];
-//    NSString *savedPasscode = [self _passcode];
-//    // Entering from Settings. If savedPasscode is empty, it means
-//    // the user is setting a new Passcode now, or is changing his current Passcode.
-//    if ((_isUserChangingPasscode  || savedPasscode.length == 0) && !_isUserTurningPasscodeOff) {
-//        // Either the user is being asked for a new passcode, confirmation comes next,
-//        // either he is setting up a new passcode, confirmation comes next, still.
-//        // We need the !_isUserConfirmingPasscode condition, because if he's adding a new Passcode,
-//        // then savedPasscode is still empty and the condition will always be true, not passing this point.
-//        if ((_isUserBeingAskedForNewPasscode || savedPasscode.length == 0) && !_isUserConfirmingPasscode) {
-//            _tempPasscode = typedString;
-//            // The delay is to give time for the last bullet to appear
-//            [self performSelector:@selector(_askForConfirmationPasscode)
-//                       withObject:nil
-//                       afterDelay:0.15f];
-//        }
-//        // User entered his Passcode correctly and we are at the confirming screen.
-//        else if (_isUserConfirmingPasscode) {
-//            // User entered the confirmation Passcode incorrectly, or the passcode is the same as the old one, start over.
-//            _newPasscodeEqualsOldPasscode = [typedString isEqualToString:savedPasscode];
-//            if (![typedString isEqualToString:_tempPasscode] || _newPasscodeEqualsOldPasscode) {
-//                [self performSelector:@selector(_reAskForNewPasscode)
-//                           withObject:nil
-//                           afterDelay:_slideAnimationDuration];
-//            }
-//            // User entered the confirmation Passcode correctly.
-//            else {
-//                [self _dismissMe];
-//            }
-//        }
-//        // Changing Passcode and the entered Passcode is correct.
-//        else if ([typedString isEqualToString:savedPasscode]){
-//            [self performSelector:@selector(_askForNewPasscode)
-//                       withObject:nil
-//                       afterDelay:_slideAnimationDuration];
-//            _failedAttempts = 0;
-//        }
-//        // Acting as lockscreen and the entered Passcode is incorrect.
-//        else {
-//            [self performSelector: @selector(_denyAccess)
-//                       withObject: nil
-//                       afterDelay: _slideAnimationDuration];
-//            return NO;
-//        }
-//    }
-//    // App launch/Turning passcode off: Passcode OK -> dismiss, Passcode incorrect -> deny access.
-//    else {
-//        if ([typedString isEqualToString: savedPasscode]) {
-//            [self _dismissMe];
-//            _useFallbackPasscode = NO;
-//            if ([self.delegate respondsToSelector: @selector(passcodeWasEnteredSuccessfully)]) {
-//                [self.delegate performSelector: @selector(passcodeWasEnteredSuccessfully)];
-//            }
-//        }
-//        else {
-//            [self performSelector: @selector(_denyAccess)
-//                       withObject: nil
-//                       afterDelay: _slideAnimationDuration];
-//            return NO;
-//        }
-//    }
-
+    [_passcodeTextField resignFirstResponder];
+    [self.delegate savePasscode:typedString];
     return YES;
 }
 

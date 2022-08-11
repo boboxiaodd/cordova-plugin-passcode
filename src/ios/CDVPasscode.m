@@ -5,6 +5,7 @@
 
 @interface CDVPasscode () <LTHPasscodeViewControllerDelegate>
 @property (nonatomic,strong) CDVInvokedUrlCommand * passcode_command;
+@property (nonatomic,strong) MBProgressHUD * hud;
 @end
 
 @implementation CDVPasscode
@@ -28,6 +29,9 @@
 {
     if(![[LTHPasscodeViewController sharedUser] isCurrentlyOnScreen]) return;
     [[LTHPasscodeViewController sharedUser] closeModal];
+    if(_hud){
+        [_hud hideAnimated:YES];
+    }
 }
 
 #pragma mark LTHPasscodeViewControllerDelegate
@@ -62,14 +66,14 @@
 - (void)showHint:(NSString *)hint
 {
     UIView *view = [[UIApplication sharedApplication].delegate window];
-    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
-    hud.userInteractionEnabled = NO;
-    // Configure for text only and offset down
-    hud.mode = MBProgressHUDModeText;
-    hud.label.text = hint;
-    hud.margin = 10.f;
-    hud.removeFromSuperViewOnHide = YES;
-    [hud showAnimated:YES];
+    _hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+    _hud.userInteractionEnabled = NO;
+    _hud.removeFromSuperViewOnHide = YES;
+    _hud.mode = MBProgressHUDModeIndeterminate;
+    _hud.backgroundView.style = MBProgressHUDBackgroundStyleSolidColor;
+    _hud.backgroundView.color = [UIColor colorWithWhite:0.f alpha:0.1f];
+    _hud.label.text = hint;
+    _hud.margin = 10.f;
 }
 
 @end
