@@ -17,6 +17,14 @@
         <header-file src="src/ios/LTHPasscodeViewController.h" />
         <source-file src="src/ios/LTHPasscodeViewController.m" />
         <resource-file src="src/ios/LTHPasscodeViewController.bundle" />
+        <podspec>
+            <config>
+                <source url="https://github.com/CocoaPods/Specs.git"/>
+            </config>
+            <pods use-frameworks="true">
+                <pod name="MBProgressHUD" />
+            </pods>
+        </podspec>
     </platform>
 
 </plugin>

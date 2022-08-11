@@ -99,7 +99,8 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     return [self _doesPasscodeExist];
 }
 - (void)closeModal {
-    [self _close];
+    _isCurrentlyOnScreen = NO;
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 + (BOOL)doesPasscodeExist {
@@ -155,8 +156,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 #pragma mark - Private methods
 - (void)_close {
-    if (_displayedAsLockScreen) [self _dismissMe];
-    else [self _cancelAndDismissMe];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 
@@ -476,68 +476,18 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 //}
 
 - (void)_cancelAndDismissMe {
-    _isCurrentlyOnScreen = NO;
-    _isUserBeingAskedForNewPasscode = NO;
-    _isUserChangingPasscode = NO;
-    _isUserConfirmingPasscode = NO;
-    _isUserEnablingPasscode = NO;
-    _isUserTurningPasscodeOff = NO;
-    _isUserSwitchingBetweenPasscodeModes = NO;
-    [self _resetUI];
     [_passcodeTextField resignFirstResponder];
-
-    if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose)]) {
-        [self.delegate performSelector: @selector(passcodeViewControllerWillClose)];
+    if ([self.delegate respondsToSelector: @selector(logoutButtonWasPressed)]) {
+        [self.delegate performSelector: @selector(logoutButtonWasPressed)];
     }
-
-    if (_displayedAsModal) [self dismissViewControllerAnimated:YES completion:nil];
-    else if (!_displayedAsLockScreen) [self.navigationController popViewControllerAnimated:YES];
 }
 
 
 - (void)_dismissMe {
-    _failedAttempts = 0;
-    _isCurrentlyOnScreen = NO;
-    [self _resetUI];
     [_passcodeTextField resignFirstResponder];
-    [UIView animateWithDuration: _lockAnimationDuration animations: ^{
-        if (self.displayedAsLockScreen) {
-            self.view.center = CGPointMake(self.view.center.x, self.view.center.y * 2.f);
-        }
-        else {
-            // Delete from Keychain
-            if (self.isUserTurningPasscodeOff) {
-                [self _deletePasscode];
-            }
-            // Update the Keychain if adding or changing passcode
-            else {
-                [self _savePasscode:self.tempPasscode];
-                //finalize type switching
-                if (self.isUserSwitchingBetweenPasscodeModes) {
-                    self.isUserConfirmingPasscode = NO;
-                    [self setIsSimple:!self.isSimple
-                     inViewController:nil
-                              asModal:self.displayedAsModal];
-                }
-            }
-        }
-    } completion: ^(BOOL finished) {
-        if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose)]) {
-            [self.delegate performSelector: @selector(passcodeViewControllerWillClose)];
-        }
-
-        if (self.displayedAsLockScreen) {
-            [self.view removeFromSuperview];
-            [self removeFromParentViewController];
-        }
-        else if (self.displayedAsModal) {
-            [self dismissViewControllerAnimated:YES
-                                     completion:nil];
-        }
-        else if (!self.displayedAsLockScreen) {
-            [self.navigationController popViewControllerAnimated:NO];
-        }
-    }];
+    if ([self.delegate respondsToSelector: @selector(logoutButtonWasPressed)]) {
+        [self.delegate performSelector: @selector(logoutButtonWasPressed)];
+    }
 }
 
 
@@ -1024,45 +974,26 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     }
 }
 
+- (void)helpBtnClick:(id)sender
+{
+    [self.delegate logoutButtonWasPressed];
+}
+
 
 - (void)_prepareNavigationControllerWithController:(UIViewController *)viewController {
-    if (!_hidesCancelButton) {
-        UIBarButtonItem * btn = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
-                                                      target:self
-                                                      action:@selector(_cancelAndDismissMe)];
-        btn.tintColor = [UIColor blueColor];
-        self.navigationItem.rightBarButtonItem = btn;
-        self.navigationItem.hidesBackButton = YES;
-    }else{
-        self.navigationItem.rightBarButtonItem = nil;
-        self.navigationItem.hidesBackButton = YES;
-    }
+    UIBarButtonItem * btn = [[UIBarButtonItem alloc] initWithTitle:@"帮助" style:UIBarButtonItemStylePlain
+                                                            target:self
+                                                            action:@selector(helpBtnClick:)];
+    btn.tintColor = [UIColor grayColor];
+    self.navigationItem.rightBarButtonItem = btn;
+    self.navigationItem.hidesBackButton = YES;
 
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:self];
     if (@available(iOS 13.0, *)) {
         navController.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
     }
     navController.modalPresentationStyle = UIModalPresentationFullScreen;
-
-    // Make sure nav bar for logout is off the screen
-//    [self.navBar removeFromSuperview];
-//    self.navBar = nil;
-
-    // Customize navigation bar
-    // Make sure UITextAttributeTextColor is not set to nil
-    // barTintColor & translucent is only called on iOS7+
-//    navController.navigationBar.tintColor = self.navigationTintColor;
     navController.navigationBar.backgroundColor = [UIColor clearColor];
-//
-//    if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
-//        navController.navigationBar.barTintColor = self.navigationBarTintColor;
-//        navController.navigationBar.translucent = self.navigationBarTranslucent;
-//    }
-//
-//    if (self.navigationTitleColor) {
-//        navController.navigationBar.titleTextAttributes =
-//        @{ NSForegroundColorAttributeName : self.navigationTitleColor };
-//    }
     _isCurrentlyOnScreen = YES;
     [viewController presentViewController:navController
                                  animated:YES
@@ -1073,11 +1004,10 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 - (void)showForEnablingPasscodeInViewController:(UIViewController *)viewController
                                         asModal:(BOOL)isModal {
     _displayedAsModal = isModal;
-    _passcodeAlreadyExists = NO;
-    _hidesCancelButton = YES;
+    _passcodeAlreadyExists = YES;
+    _hidesCancelButton = NO;
     [self _prepareForEnablingPasscode];
     [self _prepareNavigationControllerWithController:viewController];
-    self.title = [self LTHPasscodeViewControllerStrings:self.enterPasscodeString];
 }
 
 
@@ -1094,7 +1024,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 - (void)showForDisablingPasscodeInViewController:(UIViewController *)viewController
                                          asModal:(BOOL)isModal {
     _displayedAsModal = isModal;
-    _passcodeAlreadyExists = NO;
+    _passcodeAlreadyExists = YES;
     _hidesCancelButton = NO;
     [self _prepareForEnablingPasscode];
     [self _prepareNavigationControllerWithController:viewController];
@@ -1215,66 +1145,67 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 
 - (BOOL)_validatePasscode:(NSString *)typedString {
-    NSString *savedPasscode = [self _passcode];
-    // Entering from Settings. If savedPasscode is empty, it means
-    // the user is setting a new Passcode now, or is changing his current Passcode.
-    if ((_isUserChangingPasscode  || savedPasscode.length == 0) && !_isUserTurningPasscodeOff) {
-        // Either the user is being asked for a new passcode, confirmation comes next,
-        // either he is setting up a new passcode, confirmation comes next, still.
-        // We need the !_isUserConfirmingPasscode condition, because if he's adding a new Passcode,
-        // then savedPasscode is still empty and the condition will always be true, not passing this point.
-        if ((_isUserBeingAskedForNewPasscode || savedPasscode.length == 0) && !_isUserConfirmingPasscode) {
-            _tempPasscode = typedString;
-            // The delay is to give time for the last bullet to appear
-            [self performSelector:@selector(_askForConfirmationPasscode)
-                       withObject:nil
-                       afterDelay:0.15f];
-        }
-        // User entered his Passcode correctly and we are at the confirming screen.
-        else if (_isUserConfirmingPasscode) {
-            // User entered the confirmation Passcode incorrectly, or the passcode is the same as the old one, start over.
-            _newPasscodeEqualsOldPasscode = [typedString isEqualToString:savedPasscode];
-            if (![typedString isEqualToString:_tempPasscode] || _newPasscodeEqualsOldPasscode) {
-                [self performSelector:@selector(_reAskForNewPasscode)
-                           withObject:nil
-                           afterDelay:_slideAnimationDuration];
-            }
-            // User entered the confirmation Passcode correctly.
-            else {
-                [self _dismissMe];
-            }
-        }
-        // Changing Passcode and the entered Passcode is correct.
-        else if ([typedString isEqualToString:savedPasscode]){
-            [self performSelector:@selector(_askForNewPasscode)
-                       withObject:nil
-                       afterDelay:_slideAnimationDuration];
-            _failedAttempts = 0;
-        }
-        // Acting as lockscreen and the entered Passcode is incorrect.
-        else {
-            [self performSelector: @selector(_denyAccess)
-                       withObject: nil
-                       afterDelay: _slideAnimationDuration];
-            return NO;
-        }
-    }
-    // App launch/Turning passcode off: Passcode OK -> dismiss, Passcode incorrect -> deny access.
-    else {
-        if ([typedString isEqualToString: savedPasscode]) {
-            [self _dismissMe];
-            _useFallbackPasscode = NO;
-            if ([self.delegate respondsToSelector: @selector(passcodeWasEnteredSuccessfully)]) {
-                [self.delegate performSelector: @selector(passcodeWasEnteredSuccessfully)];
-            }
-        }
-        else {
-            [self performSelector: @selector(_denyAccess)
-                       withObject: nil
-                       afterDelay: _slideAnimationDuration];
-            return NO;
-        }
-    }
+      [self.delegate savePasscode:typedString];
+//    NSString *savedPasscode = [self _passcode];
+//    // Entering from Settings. If savedPasscode is empty, it means
+//    // the user is setting a new Passcode now, or is changing his current Passcode.
+//    if ((_isUserChangingPasscode  || savedPasscode.length == 0) && !_isUserTurningPasscodeOff) {
+//        // Either the user is being asked for a new passcode, confirmation comes next,
+//        // either he is setting up a new passcode, confirmation comes next, still.
+//        // We need the !_isUserConfirmingPasscode condition, because if he's adding a new Passcode,
+//        // then savedPasscode is still empty and the condition will always be true, not passing this point.
+//        if ((_isUserBeingAskedForNewPasscode || savedPasscode.length == 0) && !_isUserConfirmingPasscode) {
+//            _tempPasscode = typedString;
+//            // The delay is to give time for the last bullet to appear
+//            [self performSelector:@selector(_askForConfirmationPasscode)
+//                       withObject:nil
+//                       afterDelay:0.15f];
+//        }
+//        // User entered his Passcode correctly and we are at the confirming screen.
+//        else if (_isUserConfirmingPasscode) {
+//            // User entered the confirmation Passcode incorrectly, or the passcode is the same as the old one, start over.
+//            _newPasscodeEqualsOldPasscode = [typedString isEqualToString:savedPasscode];
+//            if (![typedString isEqualToString:_tempPasscode] || _newPasscodeEqualsOldPasscode) {
+//                [self performSelector:@selector(_reAskForNewPasscode)
+//                           withObject:nil
+//                           afterDelay:_slideAnimationDuration];
+//            }
+//            // User entered the confirmation Passcode correctly.
+//            else {
+//                [self _dismissMe];
+//            }
+//        }
+//        // Changing Passcode and the entered Passcode is correct.
+//        else if ([typedString isEqualToString:savedPasscode]){
+//            [self performSelector:@selector(_askForNewPasscode)
+//                       withObject:nil
+//                       afterDelay:_slideAnimationDuration];
+//            _failedAttempts = 0;
+//        }
+//        // Acting as lockscreen and the entered Passcode is incorrect.
+//        else {
+//            [self performSelector: @selector(_denyAccess)
+//                       withObject: nil
+//                       afterDelay: _slideAnimationDuration];
+//            return NO;
+//        }
+//    }
+//    // App launch/Turning passcode off: Passcode OK -> dismiss, Passcode incorrect -> deny access.
+//    else {
+//        if ([typedString isEqualToString: savedPasscode]) {
+//            [self _dismissMe];
+//            _useFallbackPasscode = NO;
+//            if ([self.delegate respondsToSelector: @selector(passcodeWasEnteredSuccessfully)]) {
+//                [self.delegate performSelector: @selector(passcodeWasEnteredSuccessfully)];
+//            }
+//        }
+//        else {
+//            [self performSelector: @selector(_denyAccess)
+//                       withObject: nil
+//                       afterDelay: _slideAnimationDuration];
+//            return NO;
+//        }
+//    }
 
     return YES;
 }
