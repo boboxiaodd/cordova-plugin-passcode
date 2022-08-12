@@ -72,7 +72,6 @@
 {
     UIView *view = [[UIApplication sharedApplication].delegate window];
     _hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
-    _hud.userInteractionEnabled = NO;
     _hud.removeFromSuperViewOnHide = YES;
     _hud.mode = MBProgressHUDModeIndeterminate;
     _hud.backgroundView.style = MBProgressHUDBackgroundStyleSolidColor;
