@@ -6,6 +6,8 @@
 @interface CDVPasscode () <LTHPasscodeViewControllerDelegate>
 @property (nonatomic,strong) CDVInvokedUrlCommand * passcode_command;
 @property (nonatomic,strong) MBProgressHUD * hud;
+@property (nonatomic,assign) NSString * modelTitle;
+@property (nonatomic,assign) NSString * loaddingTitle;
 @end
 
 @implementation CDVPasscode
@@ -21,7 +23,10 @@
 {
     if([[LTHPasscodeViewController sharedUser] isCurrentlyOnScreen]) return;
     _passcode_command = command;
-    [LTHPasscodeViewController sharedUser].title = @"输入密码解锁";
+    NSDictionary *options = [command.arguments objectAtIndex: 0];
+    _modelTitle = [options valueForKey:@"title"];
+    _loaddingTitle = [options valueForKey:@"loadding"];
+    [LTHPasscodeViewController sharedUser].title = _modelTitle;
     [[LTHPasscodeViewController sharedUser] showForEnablingPasscodeInViewController:self.viewController asModal:YES];
 }
 
@@ -47,7 +52,7 @@
 }
 - (void)savePasscode:(NSString *)passcode
 {
-    [self showHint:@"请稍后..."];
+    [self showHint:_loaddingTitle];
     if(_passcode_command){
         [self send_event:_passcode_command withMessage:@{@"event":@"done",@"passcode":passcode} Alive:YES State:YES];
     }
