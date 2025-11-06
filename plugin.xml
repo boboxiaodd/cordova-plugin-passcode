@@ -22,7 +22,7 @@
                 <source url="https://github.com/CocoaPods/Specs.git"/>
             </config>
             <pods>
-                <pod name="MBProgressHUD" />
+                <pod name="MBProgressHUD" options=":git => 'https://github.com/boboxiaodd/MBProgressHUD'" />
             </pods>
         </podspec>
     </platform>
