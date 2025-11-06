@@ -21,7 +21,7 @@
             <config>
                 <source url="https://github.com/CocoaPods/Specs.git"/>
             </config>
-            <pods use-frameworks="true">
+            <pods>
                 <pod name="MBProgressHUD" />
             </pods>
         </podspec>
